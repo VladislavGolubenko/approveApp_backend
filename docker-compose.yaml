@@ -2,23 +2,23 @@ version: '3.8'
 
 services:
 
-  db_documents:
-    container_name: db_documents
+  postgres_approve:
+    container_name: postgres_approve
     restart: always
     image: postgres:latest
     volumes:
-      - volume_db_documents:/var/lib/postgresql/data
+      - volume_postgres_approve:/var/lib/postgresql/data
       - .:/docker-entrypoint-initdb.d
     environment:
-      POSTGRES_DB: documents
+      POSTGRES_DB: db_approve
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_PORT: 5491
+      POSTGRES_PORT: 5493
     expose:
-      - 5491
+      - 5493
     ports:
-      - "5491:5491"
-    command: -p 5491
+      - "5493:5493"
+    command: -p 5493
 
   approve_app:
     container_name: approve_app
@@ -26,16 +26,16 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      POSTGRES_SERVER: db_documents
+      POSTGRES_SERVER: postgres_approve
     env_file:
       - .env
     depends_on:
-      - db_documents
+      - postgres_approve
     ports:
       - "8070:8000"
     command: ./entrypoint.sh
 
 volumes:
-  volume_db_next_up: {}
+  volume_postgres_approve: {}
 
 

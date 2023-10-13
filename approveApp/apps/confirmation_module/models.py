@@ -39,6 +39,10 @@ class POItem(models.Model):
     line_price = models.DecimalField(max_digits=19, decimal_places=2)
     unit_type = models.CharField()
 
+    po_number = models.ForeignKey(
+        PercacheOrder, related_name='po_item', on_delete=models.CASCADE, null=True, blank=True
+    )
+
 
 class InvoiceItem(models.Model):
     line_number = models.IntegerField()
@@ -48,3 +52,7 @@ class InvoiceItem(models.Model):
     unit_price = models.DecimalField(max_digits=19, decimal_places=2)
     line_price = models.DecimalField(max_digits=19, decimal_places=2)
     matchig_po_line = models.IntegerField()
+
+    invoice_number = models.ForeignKey(
+        Invoice, related_name='invoice_item', on_delete=models.CASCADE, null=True, blank=True
+    )

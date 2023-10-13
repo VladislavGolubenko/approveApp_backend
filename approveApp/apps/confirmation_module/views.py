@@ -1,8 +1,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView
-from apps.confirmation_module.models import Invoice
-from apps.confirmation_module.serializers import InvoiceListSerializer, ChangeInvoiceSerializer, DetailInvoiceSerializer
+from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
+from apps.confirmation_module.models import Invoice, PercacheOrder
+from apps.confirmation_module.serializers import InvoiceListSerializer, ChangeInvoiceSerializer, InvoiceSerializer, PercacheOrderSerializer
 
 
 class InvoiceListAPIView(ListAPIView):
@@ -12,12 +12,19 @@ class InvoiceListAPIView(ListAPIView):
 
 
 class InvoiceAPIView(RetrieveUpdateAPIView):
-    serializer_class = None
     queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
 
     def get_object(self):
-        serializer_class = DetailInvoiceSerializer
-        return get_object_or_404(Invoice, invoice_number=self.request.invoice_number)
+        return get_object_or_404(Invoice, invoice_number=self.kwargs['invoice_number'])
 
     def patch(self, request, *args, **kwargs):
-        serializer_class = ChangeInvoiceSerializer
+        self.serializer_class = ChangeInvoiceSerializer
+
+
+class POAPIView(RetrieveAPIView):
+    queryset = PercacheOrder.objects.all()
+    serializer_class = PercacheOrderSerializer
+
+    def get_object(self):
+        return get_object_or_404(PercacheOrder, po_number=self.kwargs['po_number'])

@@ -1,54 +1,74 @@
 from rest_framework import serializers
-from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem, Supplier
-
-
-class SupplierSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Supplier
-        fields = ('supplier_name', 'gl_account')
+from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem
 
 
 class InvoiceListSerializer(serializers.ModelSerializer):
-    supplier_data = SupplierSerializer(read_only=True)
+    supplier_name = serializers.CharField(source='supplier_code.supplier_name')
+    gl_account = serializers.CharField(source='supplier_code.gl_account')
 
     class Meta:
         model = Invoice
-        fields = ('__all__', 'supplier_data')
-
-
-class InvoiseItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = InvoiceItem
-        exclude = ('id', )
-
-
-class InvoiceSerializer(serializers.ModelSerializer):
-    supplier_data = SupplierSerializer(read_only=True)
-    items = InvoiseItemSerializer(read_only=True)
-
-    class Meta:
-        model = Invoice
-        fields = ('invoice_number', 'invoice_date', 'invoice_amount', 'items', 'supplier_data')
+        fields = (
+            'invoice_number', 'status', 'approvement_level', 'file_name', 'invoice_date', 'invoice_amount',
+            'department_id', 'download_link', 'po_number', 'supplier_code', 'supplier_name', 'gl_account'
+        )
 
 
 class POItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = POItem
-        exclude = ('id', )
+        fields = (
+            'check_box', 'line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
+            'unit_type'
+        )
 
 
 class PercacheOrderSerializer(serializers.ModelSerializer):
-    supplier_data = SupplierSerializer(read_only=True)
-    items = POItemSerializer(read_only=True)
+    supplier_name = serializers.CharField(source='supplier_code.supplier_name')
+    gl_account = serializers.CharField(source='supplier_code.gl_account')
+    po_items = serializers.SerializerMethodField()
 
     class Meta:
         model = PercacheOrder
-        fields = ('__all__', 'supplier_data', 'items')
+        fields = (
+            'po_number', 'po_date', 'po_amount', 'supplier_code', 'po_items',
+            'supplier_name', 'gl_account'
+        )
+
+    def get_po_items(self, instance):
+        items = POItem.objects.filter(po_number=instance.po_number)
+        return POItemSerializer(items, many=True).data
 
 
-class DetailInvoiceSerializer(serializers.Serializer):
-    invoice = InvoiceSerializer(read_only=True)
-    percache_order = PercacheOrderSerializer(read_only=True)
+class InvoiseItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceItem
+        fields = (
+            'line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
+            'matchig_po_line'
+        )
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier_code.supplier_name')
+    gl_account = serializers.CharField(source='supplier_code.gl_account')
+    invoice_items = serializers.SerializerMethodField()
+    # percache_order = serializers.SerializerMethodField()     , 'percache_order'
+
+    class Meta:
+        model = Invoice
+        fields = (
+            'invoice_number', 'invoice_date', 'invoice_amount',
+            'supplier_name', 'gl_account', 'invoice_items', 'po_number'
+        )
+
+    def get_invoice_items(self, instance):
+        items = InvoiceItem.objects.filter(invoice_number=instance.invoice_number)
+        return InvoiseItemSerializer(items, many=True).data
+
+    # def get_percache_order(self, instance):
+    #     percache_order = PercacheOrder.objects.filter(po_number=instance.po_number.pk)
+    #     return PercacheOrderSerializer(percache_order, many=False).data
 
 
 class ChangeInvoiceSerializer(serializers.ModelSerializer):
