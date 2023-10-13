@@ -44,7 +44,7 @@ class InvoiseItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceItem
         fields = (
-            'line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
+            'id', 'line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
             'matchig_po_line'
         )
 
@@ -54,6 +54,19 @@ class InvoiceSerializer(serializers.ModelSerializer):
     gl_account = serializers.CharField(source='supplier_code.gl_account')
     invoice_items = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Invoice
+        fields = (
+            'invoice_number', 'invoice_date', 'invoice_amount', 'supplier_code',
+            'supplier_name', 'gl_account', 'invoice_items', 'po_number'
+        )
+
+    def get_invoice_items(self, instance):
+        items = InvoiceItem.objects.filter(invoice_number=instance.invoice_number)
+        return InvoiseItemSerializer(items, many=True).data
+
+
+class ChangeInvoiceSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -63,10 +76,20 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'invoice_date', 'invoice_amount',
-            'supplier_name', 'gl_account', 'invoice_items', 'po_number'
+            'invoice_date', 'invoice_amount', 'po_number', 'supplier_code'
         )
 
-    def get_invoice_items(self, instance):
-        items = InvoiceItem.objects.filter(invoice_number=instance.invoice_number)
-        return InvoiseItemSerializer(items, many=True).data
+
+class ChangeInvoiceItemSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = InvoiceItem
+        fields = (
+            'line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
+            'matchig_po_line'
+        )
