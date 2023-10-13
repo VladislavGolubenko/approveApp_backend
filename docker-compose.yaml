@@ -8,7 +8,6 @@ services:
     image: postgres:latest
     volumes:
       - volume_postgres_approve:/var/lib/postgresql/data
-      - .:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_DB: db_approve
       POSTGRES_USER: postgres

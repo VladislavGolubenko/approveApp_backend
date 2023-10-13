@@ -53,7 +53,12 @@ class InvoiceSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier_code.supplier_name')
     gl_account = serializers.CharField(source='supplier_code.gl_account')
     invoice_items = serializers.SerializerMethodField()
-    # percache_order = serializers.SerializerMethodField()     , 'percache_order'
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
     class Meta:
         model = Invoice
@@ -65,11 +70,3 @@ class InvoiceSerializer(serializers.ModelSerializer):
     def get_invoice_items(self, instance):
         items = InvoiceItem.objects.filter(invoice_number=instance.invoice_number)
         return InvoiseItemSerializer(items, many=True).data
-
-    # def get_percache_order(self, instance):
-    #     percache_order = PercacheOrder.objects.filter(po_number=instance.po_number.pk)
-    #     return PercacheOrderSerializer(percache_order, many=False).data
-
-
-class ChangeInvoiceSerializer(serializers.ModelSerializer):
-    pass
