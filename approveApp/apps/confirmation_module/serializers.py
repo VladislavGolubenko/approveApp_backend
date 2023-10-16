@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem
+from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem, Supplier
 
 
 class InvoiceListSerializer(serializers.ModelSerializer):
@@ -69,7 +69,16 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 class ChangeInvoiceSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField()
+    gl_account = serializers.CharField()
+
     def update(self, instance, validated_data):
+        if suplier_instance := validated_data['supplier_code']:
+            suplier_instance.supplier_name = validated_data['supplier_name']
+            suplier_instance.gl_account = validated_data['gl_account']
+            suplier_instance.save()
+            del validated_data['supplier_code']
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -78,7 +87,7 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_date', 'invoice_amount', 'po_number', 'supplier_code'
+            'invoice_date', 'invoice_amount', 'supplier_code', 'supplier_name', 'gl_account'
         )
 
 
