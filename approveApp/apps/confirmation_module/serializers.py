@@ -26,7 +26,7 @@ class POItemSerializer(serializers.ModelSerializer):
 class PercacheOrderSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier_code.supplier_name')
     gl_account = serializers.CharField(source='supplier_code.gl_account')
-    po_items = serializers.SerializerMethodField(method_name='get_po_items')
+    po_items = POItemSerializer(many=True, read_only=True)
     total_po_items = serializers.SerializerMethodField(method_name='get_total_po_items')
 
     class Meta:
@@ -35,10 +35,6 @@ class PercacheOrderSerializer(serializers.ModelSerializer):
             'po_number', 'po_date', 'po_amount', 'supplier_code', 'po_items',
             'supplier_name', 'gl_account', 'total_po_items'
         )
-
-    def get_po_items(self, instance):
-        items = POItem.objects.filter(po_number=instance.po_number)
-        return POItemSerializer(items, many=True).data
 
     def get_total_po_items(self, instance):
         total = PercacheOrder.objects.filter(po_number=instance.po_number).count()
@@ -57,7 +53,7 @@ class InvoiseItemSerializer(serializers.ModelSerializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier_code.supplier_name')
     gl_account = serializers.CharField(source='supplier_code.gl_account')
-    invoice_items = serializers.SerializerMethodField(method_name='get_invoice_items')
+    invoice_items = InvoiseItemSerializer(many=True, read_only=True)
     total_invoice_items = serializers.SerializerMethodField(method_name='get_total_invoice_items')
 
     class Meta:
@@ -66,10 +62,6 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'invoice_number', 'invoice_date', 'invoice_amount', 'supplier_code',
             'supplier_name', 'gl_account', 'invoice_items', 'po_number', 'total_invoice_items'
         )
-
-    def get_invoice_items(self, instance):
-        items = InvoiceItem.objects.filter(invoice_number=instance.invoice_number)
-        return InvoiseItemSerializer(items, many=True).data
 
     def get_total_invoice_items(self, instance):
         total = InvoiceItem.objects.filter(invoice_number=instance.invoice_number).count()

@@ -40,7 +40,7 @@ class POItem(models.Model):
     unit_type = models.CharField()
 
     po_number = models.ForeignKey(
-        PercacheOrder, related_name='po_item', on_delete=models.CASCADE, null=True, blank=True
+        PercacheOrder, related_name='po_items', on_delete=models.CASCADE, null=True, blank=True
     )
 
 
@@ -54,5 +54,5 @@ class InvoiceItem(models.Model):
     matchig_po_line = models.IntegerField()
 
     invoice_number = models.ForeignKey(
-        Invoice, related_name='invoice_item', on_delete=models.CASCADE, null=True, blank=True
+        Invoice, related_name='invoice_items', on_delete=models.CASCADE, null=True, blank=True
     )
