@@ -33,7 +33,7 @@ class PercacheOrderSerializer(serializers.ModelSerializer):
         model = PercacheOrder
         fields = (
             'po_number', 'po_date', 'po_amount', 'supplier_code', 'po_items',
-            'supplier_name', 'gl_account'
+            'supplier_name', 'gl_account', 'total_po_items'
         )
 
     def get_po_items(self, instance):

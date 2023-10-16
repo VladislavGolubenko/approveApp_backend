@@ -16,7 +16,7 @@ class InvoiceAPIView(RetrieveUpdateAPIView):
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return InvoiceSerializer
-        if self.request.method == 'PATCH':
+        if self.request.method in ('PATCH', 'PUT'):
             return ChangeInvoiceSerializer
 
     def get_object(self):
