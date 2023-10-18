@@ -16,7 +16,7 @@ class PercacheOrder(models.Model):
 
 
 class Invoice(models.Model):
-    invoice_number = models.CharField(primary_key=True, unique=True)
+    invoice_number = models.CharField(primary_key=True)
     status = models.CharField()
     approvement_level = models.IntegerField()
     file_name = models.CharField()
@@ -27,6 +27,14 @@ class Invoice(models.Model):
 
     po_number = models.OneToOneField(PercacheOrder, on_delete=models.CASCADE)
     supplier_code = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+
+    @property
+    def new_po_number(self):
+        return None
+
+    @new_po_number.setter
+    def new_password(self, value):
+        pass
 
 
 class POItem(models.Model):
@@ -51,7 +59,10 @@ class InvoiceItem(models.Model):
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=19, decimal_places=2)
     line_price = models.DecimalField(max_digits=19, decimal_places=2)
-    matchig_po_line = models.IntegerField()
+
+    matchig_po_line = models.ForeignKey(
+        POItem, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     invoice_number = models.ForeignKey(
         Invoice, related_name='invoice_items', on_delete=models.CASCADE, null=True, blank=True
