@@ -20,7 +20,7 @@ class InvoiceAPIView(RetrieveUpdateAPIView):
             return ChangeInvoiceSerializer
 
     def get_object(self):
-        return get_object_or_404(Invoice, invoice_number=self.kwargs['invoice_number'])
+        return get_object_or_404(Invoice, id=self.kwargs['id'])
 
 
 class POAPIView(RetrieveAPIView):

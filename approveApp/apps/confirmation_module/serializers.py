@@ -10,7 +10,7 @@ class InvoiceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'status', 'approvement_level', 'file_name', 'invoice_date', 'invoice_amount',
+            'id', 'invoice_number', 'status', 'approvement_level', 'file_name', 'invoice_date', 'invoice_amount',
             'department_id', 'download_link', 'po_number', 'supplier_code', 'supplier_name', 'gl_account'
         )
 
@@ -54,13 +54,14 @@ class InvoiseItemSerializer(serializers.ModelSerializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     supplier_name = serializers.CharField(source='supplier_code.supplier_name')
     gl_account = serializers.CharField(source='supplier_code.gl_account')
+    po_data = serializers.CharField(source='po_number.po_number')
     invoice_items = InvoiseItemSerializer(many=True, read_only=True)
     total_invoice_items = serializers.SerializerMethodField(method_name='get_total_invoice_items')
 
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_number', 'supplier_name',
+            'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data', 'supplier_name',
             'gl_account', 'invoice_items', 'total_invoice_items'
         )
 
@@ -71,18 +72,24 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 class ChangeInvoiceSerializer(serializers.ModelSerializer):
     invoice_items = InvoiseItemSerializer(many=True, read_only=True)
+    new_po_number = serializers.CharField()
+    new_invoice_number = serializers.CharField()
 
     @transaction.atomic
     def update(self, instance, validated_data):
         items_data = self.initial_data.get('invoice_items')
 
-        if invoice_number := validated_data.get('invoice_number'):
-            InvoiceItem.objects.filter(invoice_number=invoice_number).delete()
+        if inv_number := validated_data.get('new_invoice_number'):
+            InvoiceItem.objects.filter(invoice_number=instance.id).delete()
+            instance.invoice_number = inv_number
+            del validated_data['new_invoice_number']
+            if validated_data.get('invoice_number'):
+                del validated_data['invoice_number']
         else:
             if items_data:
                 update_items = []
                 for item in items_data:
-                    obj = InvoiceItem.objects.get(pk=item['id'])
+                    obj = InvoiceItem.objects.get(id=item['id'])
                     obj.line_number = item['line_number']
                     obj.product_id = item['product_id']
                     obj.product_description = item['product_description']
@@ -98,11 +105,11 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
                      'matchig_po_line']
                 )
 
-        if po_obj := validated_data.get('po_number'):
-            if new_po_number := validated_data.get('new_po_number'):
-                po_obj.po_number = new_po_number
+        if po_numb := validated_data.get('new_po_number'):
+            if po_obj := instance.po_number:
+                po_obj.po_number = po_numb
+                po_obj.save()
                 del validated_data['new_po_number']
-            po_obj.save()
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -112,5 +119,5 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'invoice_date', 'po_number', 'invoice_amount', 'invoice_items', 'new_po_number'
+            'invoice_number', 'invoice_date', 'invoice_amount', 'invoice_items', 'new_po_number', 'new_invoice_number'
         )

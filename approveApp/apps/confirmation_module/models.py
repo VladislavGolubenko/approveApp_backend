@@ -2,13 +2,13 @@ from django.db import models
 
 
 class Supplier(models.Model):
-    supplier_code = models.CharField(primary_key=True, unique=True)
+    supplier_code = models.CharField(unique=True)
     supplier_name = models.CharField()
     gl_account = models.CharField()
 
 
 class PercacheOrder(models.Model):
-    po_number = models.CharField(primary_key=True, unique=True)
+    po_number = models.CharField(unique=True)
     po_date = models.DateField()
     po_amount = models.DecimalField(max_digits=19, decimal_places=2)
 
@@ -16,7 +16,7 @@ class PercacheOrder(models.Model):
 
 
 class Invoice(models.Model):
-    invoice_number = models.CharField(primary_key=True)
+    invoice_number = models.CharField(unique=True)
     status = models.CharField()
     approvement_level = models.IntegerField()
     file_name = models.CharField()
@@ -33,8 +33,17 @@ class Invoice(models.Model):
         return None
 
     @new_po_number.setter
-    def new_password(self, value):
+    def new_po_number(self, value):
         pass
+
+    @property
+    def new_invoice_number(self):
+        return None
+
+    @new_invoice_number.setter
+    def new_invoice_number(self, value):
+        pass
+
 
 
 class POItem(models.Model):
