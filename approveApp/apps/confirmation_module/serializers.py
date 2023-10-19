@@ -19,7 +19,7 @@ class POItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = POItem
         fields = (
-            'check_box', 'line_number', 'product_id', 'product_description', 'quantity', 'unit_price',
+            'id', 'check_box', 'line_number', 'product_id', 'product_description', 'quantity', 'unit_price',
             'line_price', 'unit_type'
         )
 
