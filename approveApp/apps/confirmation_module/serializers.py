@@ -61,7 +61,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data', 'supplier_name',
+            'id', 'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data', 'supplier_name',
             'gl_account', 'invoice_items', 'total_invoice_items'
         )
 
@@ -75,41 +75,53 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     new_po_number = serializers.CharField()
     new_invoice_number = serializers.CharField()
 
+    @staticmethod
+    def _delete_items(instance, validated_data, inv_number):
+        InvoiceItem.objects.filter(invoice_number=instance.id).delete()
+        instance.invoice_number = inv_number
+        del validated_data['new_invoice_number']
+        if validated_data.get('invoice_number'):
+            del validated_data['invoice_number']
+
+    @staticmethod
+    def _update_items(items_data):
+        update_items = []
+        for item in items_data:
+            obj = InvoiceItem.objects.get(id=item['id'])
+            obj.line_number = item['line_number']
+            obj.product_id = item['product_id']
+            obj.product_description = item['product_description']
+            obj.quantity = item['quantity']
+            obj.unit_price = item['unit_price']
+            obj.line_price = item['line_price']
+            obj.matchig_po_line = POItem.objects.get(pk=item['matchig_po_line'])
+            update_items.append(obj)
+
+        InvoiceItem.objects.bulk_update(
+            update_items,
+            ['line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
+             'matchig_po_line']
+        )
+
+    @staticmethod
+    def _update_po(validated_data, po_obj, po_numb):
+        po_obj.po_number = po_numb
+        po_obj.save()
+        del validated_data['new_po_number']
+
     @transaction.atomic
     def update(self, instance, validated_data):
         items_data = self.initial_data.get('invoice_items')
 
         if inv_number := validated_data.get('new_invoice_number'):
-            InvoiceItem.objects.filter(invoice_number=instance.id).delete()
-            instance.invoice_number = inv_number
-            del validated_data['new_invoice_number']
-            if validated_data.get('invoice_number'):
-                del validated_data['invoice_number']
+            self._delete_items(instance, validated_data, inv_number)
         else:
             if items_data:
-                update_items = []
-                for item in items_data:
-                    obj = InvoiceItem.objects.get(id=item['id'])
-                    obj.line_number = item['line_number']
-                    obj.product_id = item['product_id']
-                    obj.product_description = item['product_description']
-                    obj.quantity = item['quantity']
-                    obj.unit_price = item['unit_price']
-                    obj.line_price = item['line_price']
-                    obj.matchig_po_line = POItem.objects.get(pk=item['matchig_po_line'])
-                    update_items.append(obj)
-
-                InvoiceItem.objects.bulk_update(
-                    update_items,
-                    ['line_number', 'product_id', 'product_description', 'quantity', 'unit_price', 'line_price',
-                     'matchig_po_line']
-                )
+                self._update_items(items_data)
 
         if po_numb := validated_data.get('new_po_number'):
             if po_obj := instance.po_number:
-                po_obj.po_number = po_numb
-                po_obj.save()
-                del validated_data['new_po_number']
+                self._update_po(validated_data, po_obj, po_numb)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

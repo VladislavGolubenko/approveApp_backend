@@ -45,7 +45,6 @@ class Invoice(models.Model):
         pass
 
 
-
 class POItem(models.Model):
     check_box = models.BooleanField(default=False)
     line_number = models.IntegerField()
