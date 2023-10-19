@@ -131,5 +131,5 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_number', 'invoice_date', 'invoice_amount', 'invoice_items', 'new_po_number', 'new_invoice_number'
+            'invoice_date', 'invoice_amount', 'invoice_items', 'new_po_number', 'new_invoice_number'
         )
