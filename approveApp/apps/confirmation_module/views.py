@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
 from apps.confirmation_module.models import Invoice, PercacheOrder
@@ -12,6 +13,7 @@ class InvoiceListAPIView(ListAPIView):
     pagination_class = LimitOffsetPagination
 
 
+@csrf_exempt
 class InvoiceAPIView(RetrieveUpdateAPIView):
     def get_serializer_class(self):
         if self.request.method == 'GET':
