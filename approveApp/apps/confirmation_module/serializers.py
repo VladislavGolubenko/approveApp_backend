@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem
+from apps.confirmation_module.models import Invoice, PercacheOrder, POItem, InvoiceItem, Supplier
 
 
 class InvoiceListSerializer(serializers.ModelSerializer):
@@ -131,5 +131,14 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = (
-            'invoice_date', 'invoice_amount', 'invoice_items', 'new_po_number', 'new_invoice_number'
+            'invoice_date', 'invoice_amount', 'invoice_items', 'new_po_number', 'new_invoice_number', 'supplier_code'
         )
+
+
+class SuppliersListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = (
+            'id', 'supplier_name'
+        )
+
