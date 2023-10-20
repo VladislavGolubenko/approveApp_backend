@@ -85,6 +85,11 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
     new_po_number = serializers.CharField()
     new_invoice_number = serializers.CharField()
 
+    @property
+    def data(self):
+        serializer = InvoiceSerializer(instance=self.instance)
+        return serializer.data
+
     @staticmethod
     def _delete_items(instance, validated_data, inv_number):
         InvoiceItem.objects.filter(invoice_number=instance.id).delete()
