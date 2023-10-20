@@ -87,6 +87,7 @@ class ChangeInvoiceSerializer(serializers.ModelSerializer):
 
     @property
     def data(self):
+        _ = super().data
         serializer = InvoiceSerializer(instance=self.instance)
         return serializer.data
 
