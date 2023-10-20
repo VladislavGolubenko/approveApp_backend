@@ -52,6 +52,7 @@ class InvoiseItemSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
+    supplier_id = serializers.CharField(source='supplier_code.id')
     supplier_name = serializers.CharField(source='supplier_code.supplier_name')
     gl_account = serializers.CharField(source='supplier_code.gl_account')
     po_data = serializers.CharField(source='po_number.po_number')
@@ -62,7 +63,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         model = Invoice
         fields = (
             'id', 'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data', 'supplier_name',
-            'gl_account', 'invoice_items', 'total_invoice_items'
+            'gl_account', 'invoice_items', 'total_invoice_items', 'supplier_id'
         )
 
     def get_total_invoice_items(self, instance):
