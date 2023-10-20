@@ -52,23 +52,32 @@ class InvoiseItemSerializer(serializers.ModelSerializer):
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
-    supplier_id = serializers.CharField(source='supplier_code.id')
-    supplier_name = serializers.CharField(source='supplier_code.supplier_name')
-    gl_account = serializers.CharField(source='supplier_code.gl_account')
+    # supplier_id = serializers.CharField(source='supplier_code.id')
+    # supplier_name = serializers.CharField(source='supplier_code.supplier_name')
+    # gl_account = serializers.CharField(source='supplier_code.gl_account')
     po_data = serializers.CharField(source='po_number.po_number')
     invoice_items = InvoiseItemSerializer(many=True, read_only=True)
     total_invoice_items = serializers.SerializerMethodField(method_name='get_total_invoice_items')
+    supplier_data = serializers.SerializerMethodField(method_name='get_supplier_data')
 
     class Meta:
         model = Invoice
         fields = (
-            'id', 'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data', 'supplier_name',
-            'gl_account', 'invoice_items', 'total_invoice_items', 'supplier_id'
+            'id', 'invoice_number', 'invoice_date', 'invoice_amount', 'file_name', 'status', 'po_data',
+            'invoice_items', 'total_invoice_items', 'supplier_data'
         )
 
     def get_total_invoice_items(self, instance):
         total = InvoiceItem.objects.filter(invoice_number=instance.invoice_number).count()
         return total
+
+    def get_supplier_data(self, instance):
+        supplier = instance.supplier_code
+        return {
+            'id': supplier.id,
+            'gl_account': supplier.gl_account,
+            'supplier_name': supplier.supplier_name
+        }
 
 
 class ChangeInvoiceSerializer(serializers.ModelSerializer):
